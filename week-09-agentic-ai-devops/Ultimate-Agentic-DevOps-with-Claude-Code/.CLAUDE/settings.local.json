@@ -1,0 +1,21 @@
+{
+  "env": {
+    "AWS_ACCESS_KEY_ID": "AKIAYJA5CCODJ7WKLTGC",
+    "AWS_SECRET_ACCESS_KEY": "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",
+    "AWS_REGION": "ap-south-1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(open:*)"
+    ]
+  },
+  "enableMcpjsonServers": [
+    "terraform",
+    "aws"
+  ],
+  "enabledMcpjsonServers": [
+    "terraform",
+    "aws"
+  ]
+}

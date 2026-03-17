@@ -1,0 +1,13 @@
+# Terraform — never commit these
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+tfplan.out
+*.tfvars
+!example.tfvars
+
+# Credentials & keys
+*.pem
+*.key
+.env

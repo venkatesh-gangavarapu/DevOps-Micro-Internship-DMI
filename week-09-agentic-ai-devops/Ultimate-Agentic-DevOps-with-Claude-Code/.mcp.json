@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "F:/DevOps-Micro-Internship-Pravin Mishra/Agenti-AI-DevOps/Ultimate-Agentic-DevOps-with-Claude-Code/terraform:/workspace",
+        "-w", "/workspace",
+        "hashicorp/terraform-mcp-server"
+      ]
+    },
+    "aws": {
+      "command": "C:\\Users\\ASUS\\.local\\bin\\uvx.exe",
+      "args": [
+        "awslabs.aws-api-mcp-server@latest"
+      ],
+      "env": {
+        "AWS_PROFILE": "default",
+        "AWS_DEFAULT_REGION": "ap-south-1",
+        "UV_CACHE_DIR": "C:\\Users\\ASUS\\AppData\\Local\\uv\\cache"
+      }
+    }
+  }
+}
