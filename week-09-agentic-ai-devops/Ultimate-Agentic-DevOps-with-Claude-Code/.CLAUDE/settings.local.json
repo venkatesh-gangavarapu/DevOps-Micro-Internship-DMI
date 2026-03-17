@@ -1,7 +1,7 @@
 {
   "env": {
-    "AWS_ACCESS_KEY_ID": "AKIAYJA5CCODJ7WKLTGC",
-    "AWS_SECRET_ACCESS_KEY": "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",
+    "AWS_ACCESS_KEY_ID": "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY": "AWS_SECRET_ACCESS_KEY",
     "AWS_REGION": "ap-south-1"
   },
   "permissions": {
