@@ -1,0 +1,51 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ansible runtime artifacts
+*.retry
+.ansible/
+inventories/host_vars/*/vault.yml
+inventories/group_vars/*/vault.yml
+
+# Ansible Vault password files (never commit these)
+.vault_pass
+.vault_password
+vault_pass.txt
+vault_password.txt
+*vault*pass*
+
+# SSH keys (never commit private keys)
+*.pem
+*.key
+id_rsa
+id_ed25519
+id_ecdsa
+
+# Secrets / environment files
+.env
+.env.*
+secrets.yml
+secrets.yaml
+
+# Logs
+*.log
+logs/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.idea/
+
+# pre-commit cache
+.pre-commit-cache/
