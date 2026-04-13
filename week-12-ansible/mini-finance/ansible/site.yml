@@ -1,0 +1,86 @@
+---
+# ─────────────────────────────────────────────
+# Play 1 — Install & Configure Nginx
+# ─────────────────────────────────────────────
+- name: Install and configure Nginx
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install nginx and git
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - git
+        state: present
+
+    - name: Ensure nginx is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+# ─────────────────────────────────────────────
+# Play 2 — Clone & Deploy Mini Finance Site
+# ─────────────────────────────────────────────
+- name: Deploy Mini Finance site
+  hosts: web
+  become: true
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+  tasks:
+    - name: Clone Mini Finance repo
+      ansible.builtin.git:
+        repo: https://github.com/pravinmishraaws/mini_finance
+        dest: /tmp/mini_finance
+        version: main
+        force: yes
+
+    - name: Copy site content to web root
+      ansible.builtin.copy:
+        src: /tmp/mini_finance/
+        dest: /var/www/html/
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        remote_src: yes
+      notify: Reload nginx
+
+    - name: Set correct ownership on web root
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+        recurse: yes
+
+# ─────────────────────────────────────────────
+# Play 3 — Verify Deployment from Controller
+# ─────────────────────────────────────────────
+- name: Verify deployment
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Check HTTP 200 on Mini Finance VM
+      ansible.builtin.uri:
+        url: "http://{{ groups['web'][0] }}"
+        method: GET
+        status_code: 200
+      register: result
+
+    - name: Print verification result
+      ansible.builtin.debug:
+        msg: "✅ http://{{ groups['web'][0] }} returned HTTP {{ result.status }}"

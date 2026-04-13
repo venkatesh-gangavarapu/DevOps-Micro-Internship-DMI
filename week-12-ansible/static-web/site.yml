@@ -1,0 +1,65 @@
+---
+# ─────────────────────────────────────────
+# Play 1 — Install & Configure Web Server
+# ─────────────────────────────────────────
+- name: Install and configure Nginx
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure nginx is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+# ─────────────────────────────────────────
+# Play 2 — Deploy Static Content
+# ─────────────────────────────────────────
+- name: Deploy static website content
+  hosts: web
+  become: true
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+  tasks:
+    - name: Deploy index.html to web root
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      notify: Reload nginx
+
+# ─────────────────────────────────────────
+# Play 3 — Verify Deployment from Controller
+# ─────────────────────────────────────────
+- name: Verify deployment
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Check HTTP 200 on each web server
+      ansible.builtin.uri:
+        url: "http://{{ item }}"
+        method: GET
+        status_code: 200
+      loop: "{{ groups['web'] }}"
+      register: result
+
+    - name: Print verification result
+      ansible.builtin.debug:
+        msg: "✅ {{ item.url }} returned HTTP {{ item.status }}"
+      loop: "{{ result.results }}"
