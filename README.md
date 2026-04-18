@@ -45,15 +45,19 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 | 4 | [Week 04](./week-04-kubernetes-and-deployments/) | Kubernetes & Cloud Deployments | Portfolio + GoToJob deployed on K8s | ✅ |
 | 5 | [Week 05](./week-05-consolidated-revision/) | Consolidated Revision (Weeks 1–4) | Linux, Git, AWS, CI/CD — all reinforced hands-on | ✅ |
 | 6 | [Week 06](./week-06-aws-core-services/) | AWS Core Services | Book Review App (3-tier), Portfolio on EC2, S3 + CloudFront | ✅ |
-| 7 | Week 07 | Azure Fundamentals | Azure CLI, Resource Groups, VMs | ✅ |
+| 7 | Week 07 | Azure Fundamentals *(Practice — Weeks 1–6 consolidation)* | Azure CLI, Resource Groups, VMs — foundations for Week 08 | ✅ |
 | 8 | [Week 08](./week-08-azure-deployments/) | Azure Advanced Deployments | 3-tier Load Balancer architecture, EpicBook + MySQL | ✅ |
 | 9 | [Week 09](./week-09-agentic-ai-devops/) | Agentic AI DevOps | Live AWS S3 + CloudFront deployed via Claude Code pipeline | ✅ |
 | 10 | [Week 10](./week-10-terraform-and-iac/) | Terraform & Infrastructure as Code | Azure VM stack provisioned via Terraform — full lifecycle | ✅ |
-| 11 | Week 11 | Coming Soon | — | 🔜 |
-| 12 | Week 12 | Coming Soon | — | 🔜 |
+| 11 | Week 11 | Consolidated Revision *(Practice — Weeks 6–10)* | Docker, K8s, AWS, Azure, Terraform — reinforced hands-on | 🔄 |
+| 12 | [Week 12](./week-12-ansible/) | Ansible & Configuration Management | Ansible onboarding, EpicBook prod deploy, mini-finance, static site | ✅ |
 | 13 | Week 13 | Coming Soon | — | 🔜 |
 | 14 | Week 14 | Coming Soon | — | 🔜 |
 | 15 | Week 15 | Coming Soon | — | 🔜 |
+
+> **Week 07** — Practice week consolidating Weeks 1–6 (Linux, Docker, K8s, AWS). Azure CLI basics and resource group fundamentals covered to prepare for the advanced Azure deployments in Week 08.
+>
+> **Week 11** — Practice week consolidating Weeks 6–10 (AWS, Azure, Terraform, Docker Compose, Kubernetes). Reinforcing deployment patterns, IaC lifecycle, and config management before advancing to Ansible in Week 12.
 
 ---
 
@@ -63,13 +67,38 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 
 | Weeks Completed | Cloud Providers | Real Deployments | Assignments Done |
 |:---:|:---:|:---:|:---:|
-| 10 / 15 | AWS + Azure | 8+ | 25+ |
+| 11 / 15 | AWS + Azure | 10+ | 25+ |
 
 </div>
 
 ---
 
 ## Featured Work
+
+### Week 12 — Ansible & Configuration Management
+
+Production-grade configuration management: automated multi-app deployments across EpicBook, mini-finance, and static sites — zero manual server setup.
+
+**Ansible Onboarding Environment built:**
+- Python virtual environment with pinned dependencies (`ansible` 13.5.0 + `ansible-core` 2.20.4)
+- `ansible-lint` 26.4.0 + `pre-commit` hooks (`yamllint` + `ansible-lint`) to enforce playbook quality before every commit
+- `ansible.cfg` with SSH pipelining enabled, YAML callback, and role path configuration
+- VS Code workspace integration + `.editorconfig` standards (UTF-8, LF, 2-space indent)
+
+**Apps deployed via Ansible:**
+
+| Project | What Was Automated |
+|---|---|
+| `epicbook-prod` | Full EpicBook production deployment — provisioning, config, service start |
+| `mini-finance` | Finance app server provisioning and deployment |
+| `static-web` | Static website deploy via `site.yml` playbook |
+| `ansible-azure-lab` | Azure-specific Ansible environment |
+
+**Why this matters:** Ansible turns a sequence of manual SSH commands into a repeatable, version-controlled playbook. Every app above can be redeployed to a fresh server with one command — that's the operational shift from scripts to configuration management.
+
+[View Week 12 →](./week-12-ansible/)
+
+---
 
 ### Week 09 — Agentic AI DevOps with Claude Code
 
@@ -89,6 +118,22 @@ The standout week. A fully working **agentic deployment pipeline** — no manual
 **Why this matters:** Most DevOps pipelines still require a human to run `terraform apply` manually. This pipeline removes that entirely while keeping three safety checkpoints to prevent accidental infrastructure changes — the kind of production-readiness thinking that matters in real teams.
 
 [View Week 09 →](./week-09-agentic-ai-devops/)
+
+---
+
+### Week 10 — Terraform & Infrastructure as Code
+
+Provisioned a complete Azure VM infrastructure stack using Terraform — from `terraform init` to `terraform destroy`, with CLI validation at each step.
+
+```
+terraform init → terraform plan → terraform apply → az vm list -d → terraform destroy
+```
+
+Six Azure resources defined in HCL — Resource Group, VNet, Subnet, Public IP, NIC, Ubuntu VM — with full separation into `main.tf`, `variables.tf`, `outputs.tf`, and `provider.tf`.
+
+**Key insight:** Terraform resolves resource dependency order automatically by reading HCL references — you declare the desired state, not the execution sequence.
+
+[View Week 10 →](./week-10-terraform-and-iac/)
 
 ---
 
@@ -143,22 +188,6 @@ Also in Week 06: Portfolio on EC2 + static site hosting on S3 with CloudFront CD
 
 ---
 
-### Week 10 — Terraform & Infrastructure as Code
-
-Provisioned a complete Azure VM infrastructure stack using Terraform — from `terraform init` to `terraform destroy`, with CLI validation at each step.
-
-```
-terraform init → terraform plan → terraform apply → az vm list -d → terraform destroy
-```
-
-Six Azure resources defined in HCL — Resource Group, VNet, Subnet, Public IP, NIC, Ubuntu VM — with full separation into `main.tf`, `variables.tf`, `outputs.tf`, and `provider.tf`.
-
-**Key insight:** Terraform resolves resource dependency order automatically by reading HCL references — you declare the desired state, not the execution sequence.
-
-[View Week 10 →](./week-10-terraform-and-iac/)
-
----
-
 ## Real Problems Solved in Production
 
 These are actual failures hit during deployments — not from tutorials but from real infrastructure:
@@ -170,6 +199,7 @@ These are actual failures hit during deployments — not from tutorials but from
 | Week 08 | 502 Bad Gateway on Azure | `proxy_pass` port mismatch | Read `package.json` — app was on 8080, not 3000 |
 | Week 08 | Azure MySQL refusing connections | Managed service enforces SSL by default | Added SSL config to connection string |
 | Week 08 | Resource deployment failure | MySQL Flexible Server not available in chosen region | Checked availability matrix, switched regions |
+| Week 12 | Pre-commit hook blocking commit | `ansible-lint` finding playbook violations | Fixed playbook formatting, re-staged and committed |
 
 ---
 
@@ -180,7 +210,7 @@ These are actual failures hit during deployments — not from tutorials but from
 | **Cloud — AWS** | EC2, S3, CloudFront, IAM, VPC | Weeks 06, 09 |
 | **Cloud — Azure** | VMs, VNet, Subnets, Load Balancer, MySQL Flexible Server, NSGs, Bastion | Weeks 07, 08, 10 |
 | **IaC** | Terraform (AWS + Azure), HCL | Weeks 09, 10 |
-| **Config Management** | Ansible (playbooks, roles) | Week 06 |
+| **Config Management** | Ansible (playbooks, roles, lint, pre-commit hooks) | Weeks 06, 12 |
 | **Containers** | Docker, Docker Compose | Weeks 03, 06 |
 | **Orchestration** | Kubernetes (Pods, Services, Deployments, Ingress) | Week 04 |
 | **CI/CD** | GitHub Actions (multi-job YAML pipelines) | Weeks 02, 05 |
@@ -189,7 +219,7 @@ These are actual failures hit during deployments — not from tutorials but from
 | **App Runtime** | Node.js, Express.js, Next.js, React, PM2 | Weeks 02, 06, 08 |
 | **Databases** | MySQL, Sequelize ORM, Azure MySQL Flexible Server | Weeks 06, 08 |
 | **Auth & Security** | JWT, bcrypt, NSGs, Azure Bastion, SSL/TLS | Weeks 06, 08 |
-| **OS & Shell** | Linux (Ubuntu), Bash, systemctl, journalctl | Weeks 01–10 |
+| **OS & Shell** | Linux (Ubuntu), Bash, systemctl, journalctl | Weeks 01–12 |
 | **Version Control** | Git, GitHub (branching, PRs, clean commits) | All weeks |
 | **Process Manager** | PM2 (auto-restart, production Node.js) | Week 08 |
 
@@ -221,7 +251,7 @@ DevOps-Micro-Internship-DMI/
 │   ├── Pravin-Mishra-Portfolio-Template/  ← Deployed on EC2
 │   └── static-website-s3/                ← S3 + CloudFront static hosting
 │
-├── week-07-azure-fundamentals/            ← Azure CLI, Resource Groups, VMs  [coming]
+│   [Week 07 — Practice: Azure CLI fundamentals, resource groups — no separate folder]
 │
 ├── week-08-azure-deployments/             ← 3-tier LB architecture, EpicBook + MySQL
 │   ├── azure-three-tier-architecture/
@@ -233,15 +263,22 @@ DevOps-Micro-Internship-DMI/
 │   └── Ultimate-Agentic-DevOps-with-Claude-Code/
 │
 ├── week-10-terraform-and-iac/             ← Azure VM stack via Terraform — full lifecycle
-│   └── Week-10-Terraform-Azure/
-│       └── terraform/
-│           ├── main.tf
-│           ├── variables.tf
-│           ├── outputs.tf
-│           └── provider.tf
+│   ├── Week-10-Terraform-Azure/           ← Complete: main.tf, variables.tf, outputs.tf
+│   ├── Week-10-Terraform-AWS/
+│   ├── Week-10-BookReview-3Tier/
+│   ├── Week-10-BookReview-Terraform-Azure/
+│   ├── Week-10-EpicBook-AWS/
+│   └── Week-10-React-Azure/
 │
-├── week-11/                               ← Coming Soon
-├── week-12/                               ← Coming Soon
+│   [Week 11 — Practice: Weeks 6–10 revision — Docker, K8s, AWS, Azure, Terraform]
+│
+├── week-12-ansible/                       ← Ansible config management — multiple app deploys
+│   ├── ansible-onboarding/                ← Dev environment: venv, lint, pre-commit hooks
+│   ├── epicbook-prod/                     ← EpicBook production deployment
+│   ├── mini-finance/                      ← Finance app provisioning
+│   ├── static-web/                        ← Static site with site.yml playbook
+│   └── ansible-azure-lab/                 ← Azure-specific Ansible lab
+│
 ├── week-13/                               ← Coming Soon
 ├── week-14/                               ← Coming Soon
 └── week-15/                               ← Coming Soon
