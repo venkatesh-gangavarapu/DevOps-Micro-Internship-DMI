@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "{{ db_user }}",
+    "password": "{{ db_password }}",
+    "database": "{{ db_name }}",
+    "host": "{{ db_host }}",
+    "port": {{ db_port }},
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "{{ db_user }}",
+    "password": "{{ db_password }}",
+    "database": "{{ db_name }}",
+    "host": "{{ db_host }}",
+    "port": {{ db_port }},
+    "dialect": "mysql",
+    "logging": false,
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  }
+}

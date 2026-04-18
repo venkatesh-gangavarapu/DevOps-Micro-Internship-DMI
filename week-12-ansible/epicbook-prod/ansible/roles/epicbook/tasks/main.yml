@@ -1,0 +1,145 @@
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# roles/epicbook/tasks/main.yml
+# Clone repo → install Node.js → npm install → configure app → start with PM2
+# All tasks are idempotent.
+# ──────────────────────────────────────────────────────────────────────────────
+
+- name: Ensure app directory exists
+  ansible.builtin.file:
+    path: "{{ app_dest }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Mark app directory as git safe
+  ansible.builtin.shell: git config --global --add safe.directory {{ app_dest }}
+  changed_when: false
+
+- name: Clone EpicBook repository
+  ansible.builtin.git:
+    repo: "{{ app_repo }}"
+    dest: "{{ app_dest }}"
+    version: main
+    force: yes
+
+- name: Set ownership on app directory
+  ansible.builtin.file:
+    path: "{{ app_dest }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+
+- name: Fix permissions on config directory
+  ansible.builtin.file:
+    path: "{{ app_dest }}/config"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+    recurse: yes
+
+- name: Write production DB config to config.json
+  ansible.builtin.copy:
+    dest: "{{ app_dest }}/config/config.json"
+    content: |
+      {
+        "development": {
+          "username": "root",
+          "password": "demo1234",
+          "database": "bookstore",
+          "host": "127.0.0.1",
+          "dialect": "mysql"
+        },
+        "test": {
+          "username": "root",
+          "password": null,
+          "database": "database_test",
+          "host": "127.0.0.1",
+          "dialect": "mysql"
+        },
+        "production": {
+          "username": "{{ db_user }}",
+          "password": "{{ db_password }}",
+          "database": "{{ db_name }}",
+          "host": "{{ db_host }}",
+          "port": {{ db_port }},
+          "dialect": "mysql"
+        }
+      }
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+
+
+- name: Install Node.js dependencies
+  community.general.npm:
+    path: "{{ app_dest }}"
+    state: present
+
+- name: Run schema SQL on Azure MySQL
+  ansible.builtin.shell: |
+    mysql -h {{ db_host }} \
+          -u {{ db_user }} \
+          -p'{{ db_password }}' \
+          --ssl-mode=REQUIRED \
+          {{ db_name }} < {{ app_dest }}/db/BuyTheBook_Schema.sql
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Run author seed SQL
+  ansible.builtin.shell: |
+    mysql -h {{ db_host }} \
+          -u {{ db_user }} \
+          -p'{{ db_password }}' \
+          --ssl-mode=REQUIRED \
+          {{ db_name }} < {{ app_dest }}/db/author_seed.sql
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Run books seed SQL
+  ansible.builtin.shell: |
+    mysql -h {{ db_host }} \
+          -u {{ db_user }} \
+          -p'{{ db_password }}' \
+          --ssl-mode=REQUIRED \
+          {{ db_name }} < {{ app_dest }}/db/books_seed.sql
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+
+- name: Check if PM2 is already running epicbook
+  ansible.builtin.shell: pm2 list | grep epicbook
+  register: pm2_status
+  changed_when: false
+  failed_when: false
+
+- name: Start app with PM2 if not running
+  ansible.builtin.shell: cd {{ app_dest }} && pm2 start {{ app_start_file }} --name epicbook
+  environment:
+    NODE_ENV: production
+    JAWSDB_URL: "mysql://{{ db_user }}:{{ db_password }}@{{ db_host }}:{{ db_port }}/{{ db_name }}"
+  when: pm2_status.rc != 0
+
+- name: Restart app with PM2 if already running
+  ansible.builtin.shell: cd {{ app_dest }} && pm2 restart epicbook
+  when: pm2_status.rc == 0
+
+- name: Save PM2 process list
+  ansible.builtin.shell: pm2 save
+  changed_when: false
+
+- name: Set PM2 to start on boot
+  ansible.builtin.shell: pm2 startup systemd -u azureuser --hp /home/azureuser
+  changed_when: false
+
+- name: Reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+
+
+

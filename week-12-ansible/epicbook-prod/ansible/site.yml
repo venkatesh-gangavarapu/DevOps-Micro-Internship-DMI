@@ -1,0 +1,23 @@
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# site.yml — EpicBook Production Playbook
+# Roles execute in order; each is idempotent and safe to re-run.
+# ──────────────────────────────────────────────────────────────────────────────
+
+- name: Prepare system (common)
+  hosts: web
+  become: true
+  roles:
+    - common
+
+- name: Install and configure Nginx
+  hosts: web
+  become: true
+  roles:
+    - nginx
+
+- name: Deploy EpicBook application
+  hosts: web
+  become: true
+  roles:
+    - epicbook

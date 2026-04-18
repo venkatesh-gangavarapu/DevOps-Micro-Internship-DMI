@@ -1,0 +1,65 @@
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# roles/common/tasks/main.yml
+# System baseline: package cache, baseline tools, optional SSH hardening.
+# All tasks are idempotent — safe to re-run at any time.
+# ──────────────────────────────────────────────────────────────────────────────
+
+- name: Update apt package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600   # skip if cache is less than 1 hour old
+
+- name: Upgrade all installed packages to latest
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: true
+    autoclean: true
+
+- name: Install baseline packages
+  ansible.builtin.apt:
+    name:
+      - git
+      - curl
+      - unzip
+      - software-properties-common
+      - mysql-client
+    state: present
+
+- name: Add NodeSource Node.js 18 repo
+  ansible.builtin.shell: |
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+  args:
+    creates: /etc/apt/sources.list.d/nodesource.list
+
+- name: Install Node.js
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+
+- name: Install PM2 globally
+  community.general.npm:
+    name: pm2
+    global: yes
+    state: present
+
+# ── SSH hardening ─────────────────────────────────────────────────────────────
+
+- name: Disable root login via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+    validate: '/usr/sbin/sshd -t -f %s'
+  notify: Restart sshd
+
+- name: Disable password authentication via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+    state: present
+    validate: '/usr/sbin/sshd -t -f %s'
+  notify: Restart sshd

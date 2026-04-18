@@ -1,0 +1,20 @@
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# group_vars/web.yml — Variables shared across all roles for the [web] group
+# ──────────────────────────────────────────────────────────────────────────────
+
+# App
+app_repo:        https://github.com/pravinmishraaws/theepicbook
+app_dest:        /var/www/epicbook
+app_user:        azureuser
+app_group:       azureuser
+app_start_file:  server.js
+app_port:        8080
+nginx_site_name: epicbook
+
+# Database — fill mysql_host from terraform output
+db_host:     "epicbook-mysql.mysql.database.azure.com"
+db_user:     epicbookadmin
+db_password: "CHANGE_ME"   # Use ansible-vault for real deployments
+db_name:     bookstore
+db_port:     3306

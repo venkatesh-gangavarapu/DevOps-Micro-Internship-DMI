@@ -1,0 +1,19 @@
+# Terraform state & sensitive files
+terraform/.terraform/
+terraform/**/.terraform/
+terraform/**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars.local
+override.tf
+override.tf.json
+
+# Ansible sensitive files
+ansible/group_vars/vault.yml
+ansible/*.retry
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db

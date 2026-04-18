@@ -1,0 +1,12 @@
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# roles/nginx/handlers/main.yml
+# Handlers fire at the END of a play, and only once even if notified multiple
+# times — guarantees a single clean reload per run.
+# ──────────────────────────────────────────────────────────────────────────────
+
+- name: Reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+
