@@ -1,0 +1,15 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars
+
+# Ansible
+ansible/*.retry
+ansible/group_vars/vault.yml
+
+# General
+.DS_Store
+*.log
+.env

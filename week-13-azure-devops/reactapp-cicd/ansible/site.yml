@@ -1,0 +1,128 @@
+---
+- name: Configure VM for React CI/CD deployment
+  hosts: web
+  become: true
+
+  vars:
+    app_user: azureuser
+    web_root: /var/www/html
+    vm_password: "DevOps@Agent123"   # change before running
+
+  tasks:
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - curl
+          - git
+        state: present
+
+    - name: Ensure /var/www/html exists
+      ansible.builtin.file:
+        path: "{{ web_root }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Remove default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+
+    - name: Deploy nginx site config
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/react-app
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              root /var/www/html;
+              index index.html;
+
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+
+              access_log /var/log/nginx/react-app_access.log;
+              error_log  /var/log/nginx/react-app_error.log;
+          }
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload nginx
+
+    - name: Enable react-app nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/react-app
+        dest: /etc/nginx/sites-enabled/react-app
+        state: link
+      notify: Reload nginx
+
+    - name: Ensure nginx is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    # ── Enable password auth for Azure DevOps SSH Service Connection ──
+    - name: Set password for azureuser
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        password: "{{ vm_password | password_hash('sha512') }}"
+
+    - name: Enable password authentication in sshd
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+        state: present
+      notify: Restart sshd
+
+    - name: Install Node.js 18 via NodeSource
+      ansible.builtin.shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: yes
+
+    - name: Install PM2 globally
+      community.general.npm:
+        name: pm2
+        global: yes
+        state: present
+
+    - name: Fix inotify watch limit for npm test
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: 'fs.inotify.max_user_watches=524288'
+        state: present
+      notify: Apply sysctl
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+    - name: Apply sysctl
+      ansible.builtin.shell: sysctl -p
+      changed_when: false
