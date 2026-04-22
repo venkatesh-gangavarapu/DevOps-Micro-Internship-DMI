@@ -1,0 +1,25 @@
+# Ansible
+*.retry
+*.log
+.vagrant/
+
+# Terraform (if applicable)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+

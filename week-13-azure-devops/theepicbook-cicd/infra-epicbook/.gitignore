@@ -1,0 +1,20 @@
+# Terraform runtime artifacts
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+.crash.log
+terraform-outputs.json
+infra-outputs.env
+
+# Never commit secret overrides or SSH keys
+*.auto.tfvars
+id_rsa
+id_rsa.pub
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
