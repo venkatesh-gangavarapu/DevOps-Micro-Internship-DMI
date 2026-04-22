@@ -3,7 +3,7 @@ trigger: none
 resources:
   pipelines:
     - pipeline: infra
-      source: infra-epicbook.git
+      source: infra-epicbook
       trigger: true
 
 variables:
