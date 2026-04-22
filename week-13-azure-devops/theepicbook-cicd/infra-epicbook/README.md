@@ -5,11 +5,6 @@ This repository is the first stage of a dual-pipeline deployment for EpicBook.
 - Stage 1 (this repo): provisions Azure infrastructure with Terraform and publishes deployment outputs.
 - Stage 2 (app deployment repo): consumes these outputs and deploys/configures the application with Ansible.
 
-## Complete Deployment Guide
-
-Use the full end-to-end guide here:
-
-- https://docs.google.com/document/d/1cN-SRPxDvwvN3i20Hu63nqW5EJbXcBA0WdS6nTUKVq0/edit?usp=sharing
 
 ## What Stage 1 Provisions
 
