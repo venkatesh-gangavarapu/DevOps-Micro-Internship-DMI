@@ -1,0 +1,20 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars
+
+# React (if source code is in this repo)
+node_modules/
+build/
+
+# Environment files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# General
+.DS_Store
+*.log
+

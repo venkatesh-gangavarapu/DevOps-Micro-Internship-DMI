@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────
+# Single-Stage Baseline — DO NOT USE IN PRODUCTION
+# This is the "before" image for comparison only
+#
+# Problems with this approach:
+# - Ships Node.js, npm, and all build tools to prod
+# - Includes node_modules (~500MB of dependencies)
+# - Final image ~1.2GB vs ~25MB for multi-stage
+# - Large attack surface — hundreds of packages
+# ─────────────────────────────────────────────
+FROM node:18
+
+WORKDIR /app
+
+# Copy everything (no layer cache optimisation)
+COPY . .
+
+# Install all dependencies
+RUN npm install
+
+# Build the React app
+RUN npm run build
+
+# Install static file server
+RUN npm install -g serve
+
+EXPOSE 3000
+
+# Serve build output on port 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
