@@ -14,7 +14,11 @@
     "dialect": "mysql"
   },
   "production": {
-    "use_env_variable":"JAWSDB_URL",
+    "username": "epicbookadmin",
+    "password": "EpicBook@MySQL123",
+    "database": "bookstore",
+    "host": "mysql",
+    "port": 3306,
     "dialect": "mysql"
   }
 }
