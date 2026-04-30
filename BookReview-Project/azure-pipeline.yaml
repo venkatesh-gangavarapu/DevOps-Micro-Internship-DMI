@@ -1,0 +1,197 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  AWS_REGION: "us-east-1"
+  ECR_REGISTRY: "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com"
+  BACKEND_IMAGE: "book-review-backend"
+  FRONTEND_IMAGE: "book-review-frontend"
+  EKS_CLUSTER_NAME: "book-review-production-eks"
+  K8S_NAMESPACE: "book-review"
+  IMAGE_TAG: "$(Build.BuildId)"
+
+stages:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Stage 1: Build & push Docker images to ECR
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: Build
+    displayName: "Build & Push Docker Images to ECR"
+    jobs:
+      - job: BuildAndPush
+        displayName: "Build backend + frontend and push to ECR"
+        pool:
+          name: "self-hosted-agent-pool"
+        steps:
+          - checkout: self
+
+          - script: |
+              aws ecr get-login-password --region $(AWS_REGION) | \
+                docker login --username AWS --password-stdin $(ECR_REGISTRY)
+            displayName: "Authenticate Docker with ECR"
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              aws ecr describe-repositories --repository-names $(BACKEND_IMAGE) --region $(AWS_REGION) || \
+                aws ecr create-repository --repository-name $(BACKEND_IMAGE) --region $(AWS_REGION)
+              aws ecr describe-repositories --repository-names $(FRONTEND_IMAGE) --region $(AWS_REGION) || \
+                aws ecr create-repository --repository-name $(FRONTEND_IMAGE) --region $(AWS_REGION)
+            displayName: "Ensure ECR repositories exist"
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              docker build -t $(ECR_REGISTRY)/$(BACKEND_IMAGE):$(IMAGE_TAG) ./backend
+              docker push $(ECR_REGISTRY)/$(BACKEND_IMAGE):$(IMAGE_TAG)
+              docker tag $(ECR_REGISTRY)/$(BACKEND_IMAGE):$(IMAGE_TAG) \
+                         $(ECR_REGISTRY)/$(BACKEND_IMAGE):latest
+              docker push $(ECR_REGISTRY)/$(BACKEND_IMAGE):latest
+            displayName: "Build & push backend image"
+
+          - script: |
+              docker build -t $(ECR_REGISTRY)/$(FRONTEND_IMAGE):$(IMAGE_TAG) ./frontend
+              docker push $(ECR_REGISTRY)/$(FRONTEND_IMAGE):$(IMAGE_TAG)
+              docker tag $(ECR_REGISTRY)/$(FRONTEND_IMAGE):$(IMAGE_TAG) \
+                         $(ECR_REGISTRY)/$(FRONTEND_IMAGE):latest
+              docker push $(ECR_REGISTRY)/$(FRONTEND_IMAGE):latest
+            displayName: "Build & push frontend image"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Stage 2: Terraform — provision VPC, EKS, and RDS Aurora
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: Infra
+    displayName: "Terraform — Provision AWS Infrastructure"
+    dependsOn: Build
+    jobs:
+      - job: TerraformApply
+        displayName: "terraform init + apply"
+        pool:
+          name: "self-hosted-agent-pool"
+        steps:
+          - checkout: self
+
+          - script: |
+              terraform version
+            displayName: "Verify Terraform is installed"
+            workingDirectory: terraform
+
+          - script: |
+              terraform init \
+                -backend-config="bucket=$(TF_STATE_BUCKET)" \
+                -backend-config="region=$(AWS_REGION)"
+            displayName: "terraform init"
+            workingDirectory: terraform
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              terraform plan \
+                -var="db_password=$(DB_PASSWORD)" \
+                -out=tfplan
+            displayName: "terraform plan"
+            workingDirectory: terraform
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              TF_VAR_aws_region: $(AWS_REGION)
+
+          - script: |
+              terraform apply -auto-approve tfplan
+            displayName: "terraform apply"
+            workingDirectory: terraform
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              echo "##vso[task.setvariable variable=RDS_ENDPOINT;isOutput=true]$(terraform output -raw rds_endpoint)"
+              echo "##vso[task.setvariable variable=EKS_CLUSTER;isOutput=true]$(terraform output -raw eks_cluster_name)"
+            displayName: "Export Terraform outputs as pipeline variables"
+            name: tf_outputs
+            workingDirectory: terraform
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Stage 3: Deploy application to EKS
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: Deploy
+    displayName: "Deploy to EKS via kubectl"
+    dependsOn: Infra
+    variables:
+      RDS_ENDPOINT: $[ stageDependencies.Infra.TerraformApply.outputs['tf_outputs.RDS_ENDPOINT'] ]
+    jobs:
+      - job: KubectlDeploy
+        displayName: "Apply Kubernetes manifests"
+        pool:
+          name: "self-hosted-agent-pool"
+        steps:
+          - checkout: self
+
+          - script: |
+              aws eks update-kubeconfig \
+                --region $(AWS_REGION) \
+                --name $(EKS_CLUSTER_NAME)
+            displayName: "Configure kubectl for EKS"
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              kubectl apply -f k8s/namespace.yaml
+            displayName: "Create namespace"
+
+          - script: |
+              kubectl create secret generic app-secrets \
+                --namespace=$(K8S_NAMESPACE) \
+                --from-literal=DB_PASSWORD=$(DB_PASSWORD) \
+                --from-literal=JWT_SECRET=$(JWT_SECRET) \
+                --dry-run=client -o yaml | kubectl apply -f -
+            displayName: "Create/update app secrets"
+            env:
+              DB_PASSWORD: $(DB_PASSWORD)
+              JWT_SECRET: $(JWT_SECRET)
+
+          - script: |
+              sed -i "s|REPLACE_WITH_RDS_ENDPOINT|$(RDS_ENDPOINT)|g" k8s/backend/configmap.yaml
+              kubectl apply -f k8s/backend/configmap.yaml
+            displayName: "Apply backend ConfigMap with RDS endpoint"
+
+          - script: |
+              sed -i \
+                "s|ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com|$(ECR_REGISTRY)|g; \
+                 s|IMAGE_TAG|$(IMAGE_TAG)|g" \
+                k8s/backend/deployment.yaml k8s/frontend/deployment.yaml
+              kubectl apply -f k8s/backend/deployment.yaml
+              kubectl apply -f k8s/backend/service.yaml
+              kubectl apply -f k8s/frontend/deployment.yaml
+              kubectl apply -f k8s/frontend/service.yaml
+            displayName: "Deploy backend and frontend"
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+          - script: |
+              kubectl rollout status deployment/backend  -n $(K8S_NAMESPACE) --timeout=120s
+              kubectl rollout status deployment/frontend -n $(K8S_NAMESPACE) --timeout=120s
+            displayName: "Wait for rollout to complete"
+
+          - script: |
+              echo "=== Pods ==="
+              kubectl get pods -n $(K8S_NAMESPACE)
+              echo "=== Services ==="
+              kubectl get svc  -n $(K8S_NAMESPACE)
+              echo ""
+              echo "LoadBalancer URL:"
+              kubectl get svc frontend-service -n $(K8S_NAMESPACE) \
+                -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+            displayName: "Print deployment status and LoadBalancer URL"
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)

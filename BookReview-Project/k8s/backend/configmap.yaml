@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: book-review
+data:
+  DB_HOST: "REPLACE_WITH_RDS_ENDPOINT"   # replaced by pipeline at deploy time
+  DB_USER: "admin"
+  DB_NAME: "book_review_db"
+  DB_PORT: "3306"
+  PORT: "3001"
+  ALLOWED_ORIGINS: "http://frontend-service"
