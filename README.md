@@ -49,15 +49,21 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 | 8 | [Week 08](./week-08-azure-deployments/) | Azure Advanced Deployments | 3-tier Load Balancer architecture, EpicBook + MySQL | ✅ |
 | 9 | [Week 09](./week-09-agentic-ai-devops/) | Agentic AI DevOps | Live AWS S3 + CloudFront deployed via Claude Code pipeline | ✅ |
 | 10 | [Week 10](./week-10-terraform-and-iac/) | Terraform & Infrastructure as Code | Azure VM stack provisioned via Terraform — full lifecycle | ✅ |
-| 11 | Week 11 | Consolidated Revision *(Practice — Weeks 6–10)* | Docker, K8s, AWS, Azure, Terraform — reinforced hands-on | 🔄 |
+| 11 | Week 11 | Consolidated Revision *(Practice — Weeks 6–10)* | Docker, K8s, AWS, Azure, Terraform — reinforced hands-on | ✅ |
 | 12 | [Week 12](./week-12-ansible/) | Ansible & Configuration Management | Ansible onboarding, EpicBook prod deploy, mini-finance, static site | ✅ |
-| 13 | Week 13 | Coming Soon | — | 🔜 |
-| 14 | Week 14 | Coming Soon | — | 🔜 |
-| 15 | Week 15 | Coming Soon | — | 🔜 |
+| 13 | [Week 13](./week-13-azure-devops/) | Azure DevOps & CI/CD Pipelines | ReactApp + EpicBook automated via Azure DevOps pipelines | ✅ |
+| 14 | [Week 14](./week-14-docker/) | Docker Advanced & Capstone | Multi-stage builds, EpicBook capstone, Docker fundamentals | ✅ |
+| 15 | [Week 15](./week-15-k8s-lab/) | Kubernetes Lab | Full K8s lifecycle — Pods, ReplicaSets, Deployments, Services, HPA | ✅ |
 
 > **Week 07** — Practice week consolidating Weeks 1–6 (Linux, Docker, K8s, AWS). Azure CLI basics and resource group fundamentals covered to prepare for the advanced Azure deployments in Week 08.
 >
 > **Week 11** — Practice week consolidating Weeks 6–10 (AWS, Azure, Terraform, Docker Compose, Kubernetes). Reinforcing deployment patterns, IaC lifecycle, and config management before advancing to Ansible in Week 12.
+>
+> **Week 13** — Azure DevOps CI/CD pipelines for ReactApp and EpicBook — automated build, test, and deploy pipelines using Azure Pipelines YAML.
+>
+> **Week 14** — Docker advanced: single and multi-stage builds, EpicBook containerization capstone. Production image optimization and layer caching.
+>
+> **Week 15** — Kubernetes Lab: full workload lifecycle covering Pods, ReplicaSets, Deployments, three Service types (ClusterIP, NodePort, LoadBalancer), liveness and readiness probes, and Horizontal Pod Autoscaling. Deliberately broken configurations included to build real debugging muscle.
 
 ---
 
@@ -67,7 +73,27 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 
 | Weeks Completed | Cloud Providers | Real Deployments | Assignments Done |
 |:---:|:---:|:---:|:---:|
-| 11 / 15 | AWS + Azure | 10+ | 25+ |
+| 15 / 15 | AWS + Azure | 15+ | 30+ |
+
+</div>
+
+---
+
+## Certification
+
+<div align="center">
+
+[![Udemy Certificate](https://img.shields.io/badge/Udemy-Certificate_of_Completion-A435F0?style=for-the-badge&logo=udemy&logoColor=white)](https://ude.my/UC-9ea26301-f336-4903-bfd1-bb19ee6658d0)
+
+**DevOps for beginners: Docker, K8s, AWS & Azure + 4 Projects**
+*Pravin Mishra — AWS Certified Cloud Practitioner | Solutions Architect*
+Completed: April 30, 2026 · 46 hours
+
+[![View Certificate](https://img.shields.io/badge/View_Certificate-ude.my%2FUC--9ea26301-A435F0?style=flat&logo=udemy&logoColor=white)](https://ude.my/UC-9ea26301-f336-4903-bfd1-bb19ee6658d0)
+
+<a href="https://ude.my/UC-9ea26301-f336-4903-bfd1-bb19ee6658d0" target="_blank">
+  <img src="./assets/DevOps-Certification.jpg" alt="Udemy DevOps Certificate of Completion — Venkatesh Gangavarapu" width="800"/>
+</a>
 
 </div>
 
@@ -211,9 +237,9 @@ These are actual failures hit during deployments — not from tutorials but from
 | **Cloud — Azure** | VMs, VNet, Subnets, Load Balancer, MySQL Flexible Server, NSGs, Bastion | Weeks 07, 08, 10 |
 | **IaC** | Terraform (AWS + Azure), HCL | Weeks 09, 10 |
 | **Config Management** | Ansible (playbooks, roles, lint, pre-commit hooks) | Weeks 06, 12 |
-| **Containers** | Docker, Docker Compose | Weeks 03, 06 |
-| **Orchestration** | Kubernetes (Pods, Services, Deployments, Ingress) | Week 04 |
-| **CI/CD** | GitHub Actions (multi-job YAML pipelines) | Weeks 02, 05 |
+| **Containers** | Docker, Docker Compose, multi-stage builds | Weeks 03, 06, 14 |
+| **Orchestration** | Kubernetes (Pods, ReplicaSets, Deployments, Services, HPA, health probes) | Weeks 04, 15 |
+| **CI/CD** | GitHub Actions (multi-job YAML pipelines), Azure DevOps Pipelines | Weeks 02, 05, 13 |
 | **Web Server** | Nginx (reverse proxy, static hosting, load config) | Weeks 02, 06, 08 |
 | **Agentic AI** | Claude Code, CLAUDE.md, Skills, MCP, Safety Hooks | Week 09 |
 | **App Runtime** | Node.js, Express.js, Next.js, React, PM2 | Weeks 02, 06, 08 |
@@ -279,9 +305,26 @@ DevOps-Micro-Internship-DMI/
 │   ├── static-web/                        ← Static site with site.yml playbook
 │   └── ansible-azure-lab/                 ← Azure-specific Ansible lab
 │
-├── week-13/                               ← Coming Soon
-├── week-14/                               ← Coming Soon
-└── week-15/                               ← Coming Soon
+├── week-13-azure-devops/                  ← Azure DevOps CI/CD pipelines
+│   ├── reactapp-cicd/                     ← React app pipeline (Azure Pipelines YAML)
+│   └── theepicbook-cicd/                  ← EpicBook automated build + deploy pipeline
+│
+├── week-14-docker/                        ← Docker advanced & capstone
+│   ├── docker-fundamentals/               ← Core Docker concepts
+│   ├── single-and-multi-stage-docker/     ← Single vs multi-stage build comparison
+│   └── epicbook-capstone/                 ← EpicBook production containerization
+│
+├── week-15-k8s-lab/                       ← Full Kubernetes workload lifecycle lab
+│   ├── pods/
+│   ├── replicasets/
+│   ├── deployments/
+│   ├── services/                          ← ClusterIP, NodePort, LoadBalancer
+│   ├── health-probes-liveness/
+│   ├── health-probes-readiness/
+│   └── autoscaling/                       ← HPA (min 2 / max 5 replicas)
+│
+└── assets/
+    └── DevOps-Certification.jpg           ← Udemy Certificate of Completion
 ```
 
 ---
