@@ -54,6 +54,7 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 | 13 | [Week 13](./week-13-azure-devops/) | Azure DevOps & CI/CD Pipelines | ReactApp + EpicBook automated via Azure DevOps pipelines | ✅ |
 | 14 | [Week 14](./week-14-docker/) | Docker Advanced & Capstone | Multi-stage builds, EpicBook capstone, Docker fundamentals | ✅ |
 | 15 | [Week 15](./week-15-k8s-lab/) | Kubernetes Lab | Full K8s lifecycle — Pods, ReplicaSets, Deployments, Services, HPA | ✅ |
+| ★ | [BookReview Capstone](./BookReview-Project/) | Full-Stack Capstone Project | Next.js + Express + MySQL → Docker → EKS + Aurora RDS via Terraform + Azure DevOps CI/CD | ✅ |
 
 > **Week 07** — Practice week consolidating Weeks 1–6 (Linux, Docker, K8s, AWS). Azure CLI basics and resource group fundamentals covered to prepare for the advanced Azure deployments in Week 08.
 >
@@ -64,6 +65,8 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 > **Week 14** — Docker advanced: single and multi-stage builds, EpicBook containerization capstone. Production image optimization and layer caching.
 >
 > **Week 15** — Kubernetes Lab: full workload lifecycle covering Pods, ReplicaSets, Deployments, three Service types (ClusterIP, NodePort, LoadBalancer), liveness and readiness probes, and Horizontal Pod Autoscaling. Deliberately broken configurations included to build real debugging muscle.
+>
+> **BookReview Capstone** — Standalone capstone project synthesising the full 15-week stack: 3-tier Next.js + Express + MySQL app containerised with Docker Compose, deployed to AWS EKS with Aurora RDS via modular Terraform (VPC / EKS / RDS modules), and automated end-to-end through a 3-stage Azure DevOps pipeline (Build → Infra → Deploy).
 
 ---
 
@@ -71,9 +74,9 @@ This repo documents my complete **DevOps Micro Internship** journey — 15 weeks
 
 <div align="center">
 
-| Weeks Completed | Cloud Providers | Real Deployments | Assignments Done |
-|:---:|:---:|:---:|:---:|
-| 15 / 15 | AWS + Azure | 15+ | 30+ |
+| Weeks Completed | Cloud Providers | Real Deployments | Assignments Done | Capstone Projects |
+|:---:|:---:|:---:|:---:|:---:|
+| 15 / 15 | AWS + Azure | 15+ | 30+ | 1 |
 
 </div>
 
@@ -100,6 +103,52 @@ Completed: April 30, 2026 · 46 hours
 ---
 
 ## Featured Work
+
+### BookReview App — Full-Stack Capstone Project
+
+The capstone that ties the full 15-week stack together. A production-grade **three-tier book review application** built, containerised, provisioned, and shipped entirely with the tools learned across the internship.
+
+```
+Browser → Next.js Frontend (Port 3000)
+              ↓
+          Express.js REST API (Port 3001) — JWT Auth, bcrypt
+              ↓
+          MySQL / Aurora RDS — Sequelize ORM
+```
+
+**What was built:**
+
+| Layer | Technology | Detail |
+|---|---|---|
+| Frontend | Next.js 15, Tailwind CSS, Axios | SSR, dynamic routes (`/book/[id]`), React Context for auth state |
+| Backend | Express.js, Sequelize ORM | REST API — users, books, reviews; JWT middleware |
+| Database | MySQL 8 / Aurora RDS | Containerised locally; Aurora on AWS for production |
+| Containers | Docker, Docker Compose | Single-file local orchestration of all 3 tiers with health checks |
+| Kubernetes | EKS manifests — namespace, Deployments, Services, ConfigMap, Secrets | 2 replicas per tier; backend ClusterIP, frontend NLB |
+| IaC | Terraform — modular structure | Three modules: `vpc`, `eks`, `rds` — full AWS stack from `terraform apply` |
+| CI/CD | Azure DevOps 3-stage pipeline | **Build** (Docker → ECR) → **Infra** (Terraform EKS + Aurora) → **Deploy** (kubectl rollout) |
+| Config Mgmt | Ansible roles — `common`, `frontend`, `backend` | EC2-based provisioning alternative to K8s |
+
+**Deployment pipeline flow:**
+
+```
+git push main
+    │
+    ▼
+Stage 1 — Build   : docker build → push backend + frontend to ECR  (~5–8 min)
+    │
+    ▼
+Stage 2 — Infra   : terraform init → plan → apply  (VPC + EKS + Aurora RDS)  (~20–30 min)
+    │
+    ▼
+Stage 3 — Deploy  : kubectl apply manifests → rollout status → print NLB URL  (~3–5 min)
+```
+
+**Why this matters:** Every skill from the 15 weeks contributes here — Linux, Docker, K8s, AWS, Terraform, Ansible, and Azure DevOps CI/CD — assembled into a single automated path from code commit to live production URL.
+
+[View BookReview Capstone →](./BookReview-Project/)
+
+---
 
 ### Week 12 — Ansible & Configuration Management
 
@@ -233,7 +282,7 @@ These are actual failures hit during deployments — not from tutorials but from
 
 | Category | Technologies | Used In |
 |---|---|---|
-| **Cloud — AWS** | EC2, S3, CloudFront, IAM, VPC | Weeks 06, 09 |
+| **Cloud — AWS** | EC2, S3, CloudFront, IAM, VPC, EKS, Aurora RDS, ECR | Weeks 06, 09; BookReview Capstone |
 | **Cloud — Azure** | VMs, VNet, Subnets, Load Balancer, MySQL Flexible Server, NSGs, Bastion | Weeks 07, 08, 10 |
 | **IaC** | Terraform (AWS + Azure), HCL | Weeks 09, 10 |
 | **Config Management** | Ansible (playbooks, roles, lint, pre-commit hooks) | Weeks 06, 12 |
@@ -256,6 +305,16 @@ These are actual failures hit during deployments — not from tutorials but from
 ```
 DevOps-Micro-Internship-DMI/
 ├── README.md                              ← You are here
+│
+├── BookReview-Project/                    ← Full-stack capstone (standalone)
+│   ├── frontend/                          ← Next.js 15 (Tailwind CSS, Axios, React Context)
+│   ├── backend/                           ← Express.js REST API, Sequelize ORM, JWT auth
+│   ├── terraform/                         ← Modular IaC: modules/vpc, modules/eks, modules/rds
+│   ├── k8s/                               ← Kubernetes manifests — namespace, Deployments, Services
+│   ├── ansible/                           ← Ansible roles: common, frontend, backend
+│   ├── docker-compose.yml                 ← Local 3-container orchestration with health checks
+│   ├── azure-pipeline.yaml                ← 3-stage Azure DevOps CI/CD: Build → Infra → Deploy
+│   └── DEPLOYMENT.md                      ← End-to-end deployment guide (EKS + Aurora via Azure DevOps)
 │
 ├── week-01-mindset-and-foundations/       ← 7 assignments: beliefs, metrics, system plan
 ├── week-02-production-ops-and-linux/      ← React on Nginx, 6-phase production drill
